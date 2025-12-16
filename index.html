@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pole Position Apparel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+    <!-- NAV -->
+    <nav class="navbar navbar-expand navbar-dark sticky-top">
+        <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+            <a class="brand text-truncate" href="/">POLE POSITION APPAREL</a>
+
+            <div class="d-flex gap-2 flex-shrink-0">
+                <a class="nav-pill" href="/shop.html">Tienda</a>
+                <a class="nav-pill" href="/cart.html">Carrito</a>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-7 order-2 order-lg-1">
+                    <div class="section-title mb-3">Luxury · Motorsport · Bolivia</div>
+                    <h1 class="hero-title">Merch de F1 con estética premium. Hecho para fans que exigen más.</h1>
+                    <p class="hero-sub mt-3">
+                        Compra por equipos, pilotos, modelos a escala y accesorios. Diseño limpio, rápido y moderno.
+                    </p>
+
+                    <div class="d-flex gap-2 mt-4 flex-wrap">
+                        <a class="btn-gold" href="/shop.html">Explorar colección</a>
+                        <a class="btn-lux" href="/shop.html#equipos">Ver equipos</a>
+                        <a class="btn-lux" href="/shop.html#pilotos">Ver pilotos</a>
+                    </div>
+
+                    <div class="kpi d-flex gap-4 flex-wrap">
+                        <div><span class="price">Envíos a Bolivia</span></div>
+                        <div><span class="price">Pagos</span> <span class="small-muted">QR · Tienda · Tarjeta</span>
+                        </div>
+                        <div><span class="price">Soporte</span> <span class="small-muted">Chat integrado</span></div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 order-1 order-lg-2">
+                    <div class="hero-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="section-title">Próxima carrera</div>
+                                <div id="raceName" class="h4 h-title mt-2 mb-1">Demo Grand Prix</div>
+                                <div id="raceMeta" class="small-muted">Cargando fecha…</div>
+                            </div>
+                            <span class="badge-lux">Live</span>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="section-title">Cuenta regresiva</div>
+                            <div id="countdown" class="display-6 h-title mt-2">--:--:--</div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <a class="btn-lux" href="/shop.html">Comprar ahora</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <div class="d-flex justify-content-between align-items-end">
+                    <div>
+                        <div class="section-title">Drop destacado</div>
+                        <h2 class="h-title">Selección premium</h2>
+                    </div>
+                    <a class="small-muted" href="/shop.html">Ver todo →</a>
+                </div>
+                <div id="featured" class="row g-3 mt-2"></div>
+            </div>
+        </div>
+    </header>
+
+
+    <footer>
+        <div class="container d-flex justify-content-between flex-wrap gap-2">
+            <div>© <span id="y"></span> Pole Position Apparel</div>
+            <div class="small-muted">Bolivia · Diseño exclusivo</div>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/app.js"></script>
+</body>
+
+</html>

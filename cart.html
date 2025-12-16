@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carrito · Pole Position Apparel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark sticky-top">
+        <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+            <a class="brand text-truncate" href="/">POLE POSITION APPAREL</a>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <a class="nav-pill" href="/shop.html">Tienda</a>
+                <a class="nav-pill" href="/cart.html">Carrito <span id="cartCount" class="ms-1 badge-lux">0</span></a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+            <div>
+                <div class="section-title">Checkout</div>
+                <h1 class="h-title m-0">Carrito</h1>
+                <div class="small-muted mt-1">Revisa tus productos antes de pagar.</div>
+            </div>
+            <a class="small-muted" href="/shop.html">← Seguir comprando</a>
+        </div>
+
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-8">
+                <div id="empty" class="hero-card d-none">
+                    <div class="section-title">Carrito vacío</div>
+                    <h2 class="h-title mt-2 mb-2">Aún no agregaste productos</h2>
+                    <div class="small-muted">Explora la tienda y añade tus favoritos.</div>
+                    <a class="btn-gold mt-3" href="/shop.html">Ir a la tienda</a>
+                </div>
+
+                <div id="list" class="cart-list"></div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="section-title">Resumen</div>
+                        <button id="clear" type="button" class="btn-lux btn-sm px-3">Vaciar</button>
+                    </div>
+
+                    <div class="cart-line mt-3">
+                        <div class="small-muted">Subtotal</div>
+                        <div class="price"><span id="subtotal">0</span> BOB</div>
+                    </div>
+
+                    <div class="cart-line mt-2">
+                        <div class="small-muted">Envío</div>
+                        <div class="small-muted" id="shipping">Calculado en checkout</div>
+                    </div>
+
+                    <div class="pdp-divider my-3"></div>
+
+                    <div class="cart-line">
+                        <div class="small-muted">Total estimado</div>
+                        <div class="price"><span id="total">0</span> BOB</div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a class="btn-gold w-100 justify-content-center" href="/checkout.html">Continuar a pago</a>
+                        <a class="btn-lux w-100 justify-content-center" href="/shop.html">Añadir más</a>
+                    </div>
+
+                    <div class="small-muted mt-3">
+                        Pagos disponibles: QR · Tienda · Tarjeta
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container d-flex justify-content-between flex-wrap gap-2">
+            <div>© <span id="y"></span> Pole Position Apparel</div>
+            <div class="small-muted">Luxury · Motorsport</div>
+        </div>
+    </footer>
+
+    <script type="module" src="js/cart.js"></script>
+</body>
+
+</html>
