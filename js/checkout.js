@@ -5,6 +5,9 @@ document.getElementById("y").textContent = new Date().getFullYear();
 const CART_KEY = "ppa_cart_v1";
 const ORDERS_KEY = "ppa_orders_v1";
 
+// ⚠️ Cambia esto por tu WhatsApp (Bolivia): 591 + número (sin +, sin espacios)
+const WHATSAPP_NUMBER = "59170000000";
+
 const empty = document.getElementById("empty");
 const checkoutWrap = document.getElementById("checkoutWrap");
 const success = document.getElementById("success");
@@ -82,32 +85,29 @@ function setPayUI(method) {
 
     if (method === "QR") {
         payBox.innerHTML = `
-      <div class="pay-box-title">Paga con QR</div>
-      <div class="small-muted mt-1">Escanea el código y confirma tu pago.</div>
-      <div class="qr-wrap mt-3">
-        <div class="qr-fake">QR</div>
-        <div class="small-muted mt-2">Referencia: PPA-${Date.now().toString().slice(-6)}</div>
-      </div>
+      <div class="pay-box-title">Pago por QR</div>
+      <div class="small-muted mt-1">Te enviaremos el QR por WhatsApp con tu referencia.</div>
+      <div class="small-muted mt-2">Luego podrás enviar el comprobante por el mismo chat.</div>
     `;
-        hint.textContent = "Luego podrás integrar una pasarela real. Por ahora guardamos el pedido para tu demo.";
+        hint.textContent = "Recomendado: QR por WhatsApp para confirmar el pago rápidamente.";
     }
 
     if (method === "TIENDA") {
         payBox.innerHTML = `
       <div class="pay-box-title">Pago en tienda</div>
-      <div class="small-muted mt-1">Te contactaremos para coordinar la entrega y el pago.</div>
-      <div class="small-muted mt-3">Horario sugerido: 10:00–18:00</div>
+      <div class="small-muted mt-1">Reserva tu pedido y coordinamos por WhatsApp para entrega y pago.</div>
+      <div class="small-muted mt-2">Horario sugerido: 10:00–18:00</div>
     `;
-        hint.textContent = "Tu pedido quedará registrado para coordinación.";
+        hint.textContent = "Te contactaremos para coordinar el punto de entrega.";
     }
 
     if (method === "TARJETA") {
         payBox.innerHTML = `
       <div class="pay-box-title">Pago con tarjeta</div>
       <div class="small-muted mt-1">Visa · Mastercard</div>
-      <div class="small-muted mt-3">Integración real en la siguiente fase.</div>
+      <div class="small-muted mt-2">En la siguiente fase se integra pasarela de pago (ej. MercadoPago/Stripe/PayPal).</div>
     `;
-        hint.textContent = "Para la demo, el pedido se guarda y el estado queda pendiente.";
+        hint.textContent = "Para la demo, el pedido se registra y queda pendiente de pago.";
     }
 }
 
@@ -124,10 +124,13 @@ function validate() {
 
 function createOrder(items) {
     const subtotal = items.reduce((s, it) => s + it.line, 0);
+    const paymentRef = `PPA-${Date.now().toString().slice(-6)}`;
 
     return {
         id: `PPA-${Math.random().toString(16).slice(2, 8).toUpperCase()}`,
         created_at: new Date().toISOString(),
+        payment_ref: paymentRef,
+        proof: "",
         customer: {
             name: nameEl.value.trim(),
             phone: phoneEl.value.trim(),
@@ -135,7 +138,7 @@ function createOrder(items) {
             address: addressEl.value.trim()
         },
         payment_method: selectedPay,
-        status: "PENDING",
+        status: "PENDING_PAYMENT",
         items: items.map(it => ({
             id: it.product.id,
             name: it.product.name,
@@ -144,6 +147,27 @@ function createOrder(items) {
         })),
         total: subtotal
     };
+}
+
+function openWhatsApp(order) {
+    const lines = order.items
+        .map(it => `- ${it.name} x${it.qty}`)
+        .join("\n");
+
+    const text =
+        `Hola, quiero confirmar mi pedido en Pole Position Apparel.\n\n` +
+        `Pedido: ${order.id}\n` +
+        `Método: ${order.payment_method}\n` +
+        `Referencia: ${order.payment_ref}\n` +
+        `Total: ${money(order.total)} BOB\n\n` +
+        `Cliente: ${order.customer.name}\n` +
+        `Teléfono: ${order.customer.phone}\n` +
+        `Dirección: ${order.customer.address}\n\n` +
+        `Items:\n${lines}\n\n` +
+        `¿Me envían el QR / confirmamos la entrega?`;
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
 }
 
 const items = cartItemsDetailed();
@@ -173,6 +197,7 @@ if (items.length === 0) {
         }
 
         const order = createOrder(items);
+
         const orders = getOrders();
         orders.unshift(order);
         setOrders(orders);
@@ -182,5 +207,12 @@ if (items.length === 0) {
 
         checkoutWrap.classList.add("d-none");
         success.classList.remove("d-none");
+
+        // ✅ Acciones por método de pago
+        if (order.payment_method === "QR" || order.payment_method === "TIENDA") {
+            openWhatsApp(order);
+        } else {
+            hint.textContent = "Pedido registrado. Pago con tarjeta se integra en la siguiente fase.";
+        }
     });
 }
