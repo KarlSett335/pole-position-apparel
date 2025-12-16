@@ -3,7 +3,7 @@ const loginPage = document.getElementById("loginPage");
 const adminPage = document.getElementById("adminPage");
 const loginError = document.getElementById("loginError");
 
-const ADMIN_PIN = "1234"; // cámbialo
+const ADMIN_PIN = "667377"; // cámbialo
 
 if (localStorage.getItem("adminLoggedIn") === "true") {
     loginPage.classList.add("hidden");
