@@ -23,45 +23,66 @@ const featured = document.getElementById("featured");
 featured.innerHTML = PRODUCTS.slice(0, 6).map(productCard).join("");
 
 // Cuenta regresiva demo
-function $(id) { return document.getElementById(id); }
+document.addEventListener("DOMContentLoaded", () => {
+  const raceNameEl = document.getElementById("raceName");
+  const raceMetaEl = document.getElementById("raceMeta");
+  const countdownEl = document.getElementById("countdown");
 
-async function loadNextRace() {
-  const nameEl = $("raceName");
-  const metaEl = $("raceMeta");
-  const cdEl = $("countdown");
-  if (!nameEl || !metaEl || !cdEl) return;
+  if (!raceNameEl || !raceMetaEl || !countdownEl) return;
 
-  try {
-    metaEl.textContent = "Cargando…";
+  async function loadNextRace() {
+    try {
+      raceMetaEl.textContent = "Cargando…";
+      countdownEl.textContent = "--:--:--";
 
-    const res = await fetch("/api/next-race", { cache: "no-store" });
-    const payload = await res.json();
+      const res = await fetch("/api/next-race", { cache: "no-store" });
+      if (!res.ok) throw new Error("API error");
 
-    if (!res.ok || !payload.ok) throw new Error(payload.error || "API error");
+      const data = await res.json();
+      if (!data.ok) throw new Error("Payload inválido");
 
-    nameEl.textContent =
-      payload.raceName + (payload.country ? " · " + payload.country : "");
+      const title =
+        data.raceName + (data.country ? " · " + data.country : "");
+      raceNameEl.textContent = title;
 
-    const raceDate = new Date(payload.iso);
-    metaEl.textContent = raceDate.toLocaleString("es-BO");
+      const raceDate = new Date(data.iso);
+      if (isNaN(raceDate.getTime())) {
+        raceMetaEl.textContent = "Fecha no disponible";
+        return;
+      }
 
-    function tick() {
-      const diff = raceDate - Date.now();
-      if (diff <= 0) { cdEl.textContent = "¡Es hoy!"; return; }
-      const s = Math.floor(diff / 1000);
-      const d = Math.floor(s / 86400);
-      const h = Math.floor((s % 86400) / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const ss = s % 60;
-      cdEl.textContent = `${d}d ${h}:${m}:${ss}`;
-      setTimeout(tick, 1000);
+      raceMetaEl.textContent = raceDate.toLocaleString("es-BO");
+
+      function tick() {
+        const diff = raceDate.getTime() - Date.now();
+
+        if (diff <= 0) {
+          countdownEl.textContent = "¡Es hoy!";
+          return;
+        }
+
+        const totalSeconds = Math.floor(diff / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        countdownEl.textContent =
+          `${days}d ` +
+          `${String(hours).padStart(2, "0")}:` +
+          `${String(minutes).padStart(2, "0")}:` +
+          `${String(seconds).padStart(2, "0")}`;
+
+        setTimeout(tick, 1000);
+      }
+
+      tick();
+    } catch (err) {
+      console.error("Countdown error:", err);
+      raceMetaEl.textContent = "Calendario no disponible";
+      countdownEl.textContent = "--:--:--";
     }
-    tick();
-
-  } catch {
-    metaEl.textContent = "Calendario no disponible";
-    cdEl.textContent = "--:--:--";
   }
-}
 
-document.addEventListener("DOMContentLoaded", loadNextRace);
+  loadNextRace();
+});
