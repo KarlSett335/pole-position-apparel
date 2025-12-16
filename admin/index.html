@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Pole Position Apparel</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <div id="loginPage" class="login-page">
+        <h2>Acceso Admin</h2>
+        <form id="loginForm">
+            <label for="pin">PIN de Administrador:</label>
+            <input type="password" id="pin" name="pin" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="loginError" class="login-error">PIN incorrecto. Intenta nuevamente.</p>
+    </div>
+
+    <div id="adminPage" class="admin-page hidden">
+        <h2>Bienvenido al Panel de Administración</h2>
+        <script type="module" src="./admin.js"></script>
+    </div>
+
+    <script src="./login.js"></script>
+</body>
+
+</html>

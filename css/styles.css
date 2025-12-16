@@ -943,3 +943,50 @@ img {
         margin: 14px auto;
     }
 }
+
+/* Página de login */
+.login-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}
+
+.login-page h2 {
+    margin-bottom: 20px;
+}
+
+.login-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-page input {
+    padding: 10px;
+    width: 200px;
+    font-size: 16px;
+}
+
+.login-page button {
+    padding: 10px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.login-page button:hover {
+    background-color: #1558b3;
+}
+
+/* Página del admin */
+.admin-page {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #ffffff;
+    display: none;
+}
