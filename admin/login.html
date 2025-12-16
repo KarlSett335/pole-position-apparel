@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin · Login</title>
+    <link href="../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-page">
+        <h2>Acceso Administrativo</h2>
+
+        <form id="loginForm" class="login-form">
+
+            <label for="username">Usuario</label>
+            <input id="username" name="username" type="text" required autocomplete="username">
+
+            <label for="pin">PIN</label>
+            <input id="pin" name="pin" type="password" required autocomplete="current-password">
+
+            <button class="btn-gold" type="submit">Entrar</button>
+
+            <p id="err" class="login-error" aria-live="polite"></p>
+        </form>
+
+    </div>
+
+    <script type="module" src="./pages/login.js"></script>
+</body>
+
+</html>

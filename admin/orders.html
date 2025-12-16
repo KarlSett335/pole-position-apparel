@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin · Pedidos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark sticky-top">
+        <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+            <a class="brand text-truncate" href="/">POLE POSITION APPAREL</a>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <a class="nav-pill" href="/admin/index.html">Dashboard</a>
+                <a class="nav-pill" href="/admin/products.html">Productos</a>
+                <a class="nav-pill is-active" href="/admin/orders.html">Pedidos</a>
+                <a class="nav-pill" href="/admin/customers.html">Clientes</a>
+                <a class="nav-pill" href="/admin/offers.html">Ofertas</a>
+                <a class="nav-pill" href="/admin/staff.html">Equipo</a>
+                <button id="logout" class="nav-pill" type="button">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+            <div>
+                <div class="section-title">Operación</div>
+                <h1 class="h-title m-0">Pedidos</h1>
+                <div class="small-muted mt-1">Gestión de estados y pagos.</div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <input id="q" class="form-control admin-search" placeholder="Buscar ID / ref / cliente / teléfono…"
+                    aria-label="Buscar pedidos">
+
+                <select id="status" class="form-control admin-search" aria-label="Filtrar estado">
+                    <option value="all">Todos</option>
+                    <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                    <option value="PAID">Pagado</option>
+                    <option value="SHIPPED">Enviado</option>
+                    <option value="CANCELLED">Cancelado</option>
+                </select>
+
+                <select id="pay" class="form-control admin-search" aria-label="Filtrar método pago">
+                    <option value="all">Pagos (todos)</option>
+                    <option value="QR">QR</option>
+                    <option value="TIENDA">Tienda</option>
+                    <option value="TARJETA">Tarjeta</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+            <div id="meta" class="small-muted"></div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button id="export" class="btn-soft" type="button">Exportar pedidos JSON</button>
+            </div>
+        </div>
+
+        <div id="empty" class="hero-card d-none mt-3">
+            <div class="section-title">Sin pedidos</div>
+            <h2 class="h-title mt-2 mb-2">Aún no hay pedidos</h2>
+            <div class="small-muted">Genera pedidos desde el checkout para verlos aquí.</div>
+        </div>
+
+        <div id="list" class="admin-list mt-3"></div>
+
+        <!-- MODAL DETALLE -->
+        <div class="admin-modal" id="modal" aria-hidden="true">
+            <div class="admin-modal-backdrop" data-close="1"></div>
+
+            <div class="admin-modal-card" role="dialog" aria-modal="true">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div class="section-title">Pedido</div>
+                        <div id="mTitle" class="h-title"></div>
+                        <div id="mSub" class="small-muted"></div>
+                    </div>
+                    <button class="cart-remove" type="button" data-close="1" aria-label="Cerrar">×</button>
+                </div>
+
+                <div class="admin-divider"></div>
+
+                <div class="form-row two">
+                    <div>
+                        <div class="small-muted">Cliente</div>
+                        <div id="mCustomer" class="admin-strong"></div>
+                        <div id="mContact" class="small-muted"></div>
+                    </div>
+                    <div>
+                        <div class="small-muted">Dirección</div>
+                        <div id="mAddress" class="admin-strong"></div>
+                    </div>
+                </div>
+
+                <div class="admin-divider"></div>
+
+                <div class="form-row two">
+                    <div>
+                        <label for="mStatus">Estado del pedido</label>
+                        <select id="mStatus">
+                            <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                            <option value="PAID">Pagado</option>
+                            <option value="SHIPPED">Enviado</option>
+                            <option value="CANCELLED">Cancelado</option>
+                        </select>
+                        <div class="help">Esto controla el estado general del pedido.</div>
+                    </div>
+
+                    <div>
+                        <label for="mPayStatus">Estado del pago</label>
+                        <select id="mPayStatus">
+                            <option value="PENDING">Pendiente</option>
+                            <option value="CONFIRMED">Confirmado</option>
+                            <option value="REJECTED">Rechazado</option>
+                        </select>
+                        <div class="help">QR/tienda: confirma cuando recibas el comprobante.</div>
+                    </div>
+                </div>
+
+                <div class="form-row two">
+                    <div>
+                        <label for="mPayMethod">Método de pago</label>
+                        <input id="mPayMethod" disabled>
+                    </div>
+                    <div>
+                        <label for="mRef">Referencia</label>
+                        <input id="mRef" placeholder="PPA-XXXXXX">
+                    </div>
+                </div>
+
+                <div class="admin-check mt-2">
+                    <input id="mProofOk" type="checkbox">
+                    <span>Comprobante recibido (marca para control interno)</span>
+                </div>
+
+                <div class="admin-actions">
+                    <button id="save" class="btn-gold" type="button">Guardar cambios</button>
+                    <button id="markPaid" class="btn-soft" type="button">Marcar pagado</button>
+                    <button id="rejectPay" class="btn-soft admin-danger" type="button">Rechazar pago</button>
+                    <button id="wa" class="btn-soft" type="button">WhatsApp cliente</button>
+                    <button class="btn-soft" type="button" data-close="1">Cerrar</button>
+                </div>
+
+                <div id="mMsg" class="admin-msg"></div>
+
+                <div class="admin-divider"></div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="section-title">Items</div>
+                        <div class="small-muted">Detalle del pedido</div>
+                    </div>
+                    <div class="price"><span id="mTotal"></span> BOB</div>
+                </div>
+
+                <div id="mItems" class="admin-items mt-2"></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="./pages/orders.js"></script>
+</body>
+
+</html>

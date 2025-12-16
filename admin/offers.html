@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin · Ofertas</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark sticky-top">
+        <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+            <a class="brand text-truncate" href="/">POLE POSITION APPAREL</a>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <a class="nav-pill" href="/admin/index.html">Dashboard</a>
+                <a class="nav-pill" href="/admin/products.html">Productos</a>
+                <a class="nav-pill" href="/admin/orders.html">Pedidos</a>
+                <a class="nav-pill" href="/admin/customers.html">Clientes</a>
+                <a class="nav-pill is-active" href="/admin/offers.html">Ofertas</a>
+                <a class="nav-pill" href="/admin/staff.html">Equipo</a>
+                <button id="logout" class="nav-pill" type="button">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+            <div>
+                <div class="section-title">Marketing</div>
+                <h1 class="h-title m-0">Ofertas</h1>
+                <div class="small-muted mt-1">Promos con % o descuento fijo.</div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <input id="q" class="form-control admin-search" placeholder="Buscar oferta…"
+                    aria-label="Buscar ofertas">
+                <select id="active" class="form-control admin-search" aria-label="Filtrar estado">
+                    <option value="all">Todas</option>
+                    <option value="active">Activas</option>
+                    <option value="inactive">Inactivas</option>
+                </select>
+                <button id="new" class="btn-gold" type="button">Nueva</button>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+            <div id="meta" class="small-muted"></div>
+            <button id="export" class="btn-soft" type="button">Exportar ofertas JSON</button>
+        </div>
+
+        <div id="empty" class="hero-card d-none mt-3">
+            <div class="section-title">Sin ofertas</div>
+            <h2 class="h-title mt-2 mb-2">Crea tu primera promo</h2>
+            <div class="small-muted">Ej: 10% de descuento por lanzamiento.</div>
+        </div>
+
+        <div id="list" class="admin-list mt-3"></div>
+
+        <!-- MODAL -->
+        <div class="admin-modal" id="modal" aria-hidden="true">
+            <div class="admin-modal-backdrop" data-close="1"></div>
+
+            <div class="admin-modal-card" role="dialog" aria-modal="true">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div class="section-title">Oferta</div>
+                        <div id="mTitle" class="h-title"></div>
+                        <div id="mSub" class="small-muted"></div>
+                    </div>
+                    <button class="cart-remove" type="button" data-close="1" aria-label="Cerrar">×</button>
+                </div>
+
+                <div class="admin-divider"></div>
+
+                <form id="form" class="admin-form">
+                    <input type="hidden" id="id">
+
+                    <label for="title">Título</label>
+                    <input id="title" required placeholder="Promo Lanzamiento / Black Week…">
+
+                    <div class="form-row two">
+                        <div>
+                            <label for="type">Tipo</label>
+                            <select id="type" required>
+                                <option value="PERCENT">Porcentaje (%)</option>
+                                <option value="AMOUNT">Monto fijo (BOB)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="value">Valor</label>
+                            <input id="value" type="number" min="0" step="1" required>
+                            <div class="help">Si es porcentaje: 10 = 10%. Si es monto: 20 = -20 BOB.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row two">
+                        <div>
+                            <label for="starts_at">Inicio</label>
+                            <input id="starts_at" type="datetime-local">
+                        </div>
+                        <div>
+                            <label for="ends_at">Fin</label>
+                            <input id="ends_at" type="datetime-local">
+                        </div>
+                    </div>
+
+                    <label class="admin-check">
+                        <input id="is_active" type="checkbox">
+                        <span>Oferta activa</span>
+                    </label>
+
+                    <div class="admin-actions">
+                        <button class="btn-gold" type="submit">Guardar</button>
+                        <button id="del" class="btn-soft admin-danger" type="button">Eliminar</button>
+                        <button class="btn-soft" type="button" data-close="1">Cerrar</button>
+                    </div>
+
+                    <div id="msg" class="admin-msg"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="./pages/offers.js"></script>
+</body>
+
+</html>

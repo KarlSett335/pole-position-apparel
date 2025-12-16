@@ -1,0 +1,13 @@
+[
+    {
+        "id": "p1",
+        "name": "Gorra Team Black",
+        "price": 199,
+        "category": "Accesorios",
+        "team": "Pole Position",
+        "stock": 12,
+        "active": true,
+        "image_url": "assets/images/p1.jpg",
+        "created_at": "2025-12-16T00:00:00Z"
+    }
+]

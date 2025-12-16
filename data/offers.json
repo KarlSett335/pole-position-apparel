@@ -1,0 +1,11 @@
+[
+    {
+        "id": "of1",
+        "title": "Promo Lanzamiento",
+        "type": "PERCENT",
+        "value": 10,
+        "active": true,
+        "starts_at": "2025-12-01T00:00:00Z",
+        "ends_at": "2026-01-01T00:00:00Z"
+    }
+]
