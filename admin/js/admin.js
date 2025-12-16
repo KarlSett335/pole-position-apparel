@@ -32,35 +32,43 @@ function normalize(s) {
 function statusLabel(s) {
     if (s === "PAID") return "Pagado";
     if (s === "CANCELLED") return "Cancelado";
-    return "Pendiente";
+    if (s === "PENDING_PAYMENT") return "Pendiente de pago";
+    return s || "Pendiente";
 }
 
-function badgeStatus(s) {
-    const base = `badge-lux admin-badge`;
-    if (s === "PAID") return `${base} is-paid`;
-    if (s === "CANCELLED") return `${base} is-cancelled`;
-    return `${base} is-pending`;
+function badgeStatusClass(s) {
+    if (s === "PAID") return "is-paid";
+    if (s === "CANCELLED") return "is-cancelled";
+    return "is-pending";
 }
 
 function card(o) {
     const customer = o.customer?.name || "—";
     const phone = o.customer?.phone || "—";
-    const when = new Date(o.created_at).toLocaleString();
+    const when = o.created_at ? new Date(o.created_at).toLocaleString() : "—";
+    const ref = o.payment_ref ? `Ref: ${o.payment_ref}` : "Ref: —";
 
     return `
     <button type="button" class="admin-row" data-open="${o.id}">
       <div class="admin-left">
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <div class="admin-id">${o.id}</div>
-          <span class="${badgeStatus(o.status)}">${statusLabel(o.status)}</span>
-          <span class="badge-lux admin-badge">${o.payment_method}</span>
+          <span class="badge-lux admin-badge ${badgeStatusClass(o.status)}">${statusLabel(o.status)}</span>
+          <span class="badge-lux admin-badge">${o.payment_method || "—"}</span>
+          <span class="badge-lux admin-badge">${ref}</span>
         </div>
         <div class="small-muted mt-1">${customer} · ${phone}</div>
         <div class="small-muted">${when}</div>
       </div>
+
       <div class="admin-right">
-        <div class="price">${money(o.total)} BOB</div>
-        <div class="small-muted">${o.items?.length || 0} item(s)</div>
+        <div class="price">${money(o.total || 0)} BOB</div>
+        <div class="small-muted">${(o.items?.length || 0)} item(s)</div>
+
+        <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
+          <button type="button" class="btn-lux btn-sm px-3" data-pay="${o.id}">Marcar pagado</button>
+          <button type="button" class="btn-lux btn-sm px-3" data-cancel="${o.id}">Cancelar</button>
+        </div>
       </div>
     </button>
   `;
@@ -72,13 +80,13 @@ function render() {
 
     let filtered = [...orders];
 
-    if (selectedStatus !== "all") {
-        filtered = filtered.filter(o => o.status === selectedStatus);
-    }
+    if (selectedStatus !== "all") filtered = filtered.filter(o => o.status === selectedStatus);
 
     if (text) {
         filtered = filtered.filter(o => {
-            const hay = normalize(`${o.id} ${o.customer?.name} ${o.customer?.phone} ${o.customer?.email}`);
+            const hay = normalize(
+                `${o.id} ${o.payment_ref || ""} ${o.payment_method || ""} ${o.customer?.name || ""} ${o.customer?.phone || ""} ${o.customer?.email || ""}`
+            );
             return hay.includes(text);
         });
     }
@@ -94,8 +102,28 @@ function render() {
     }
 
     document.querySelectorAll("[data-open]").forEach(b => {
-        b.addEventListener("click", () => openModal(b.dataset.open));
+        b.addEventListener("click", (e) => {
+            if (e.target?.dataset?.pay || e.target?.dataset?.cancel) return;
+            openModal(b.dataset.open);
+        });
     });
+
+    document.querySelectorAll("[data-pay]").forEach(btn => {
+        btn.addEventListener("click", () => setStatus(btn.dataset.pay, "PAID"));
+    });
+
+    document.querySelectorAll("[data-cancel]").forEach(btn => {
+        btn.addEventListener("click", () => setStatus(btn.dataset.cancel, "CANCELLED"));
+    });
+}
+
+function setStatus(id, status) {
+    const orders = getOrders();
+    const o = orders.find(x => x.id === id);
+    if (!o) return;
+    o.status = status;
+    setOrders(orders);
+    render();
 }
 
 function download(filename, text) {
@@ -108,8 +136,7 @@ function download(filename, text) {
 }
 
 exportBtn.addEventListener("click", () => {
-    const orders = getOrders();
-    download("orders.json", JSON.stringify(orders, null, 2));
+    download("orders.json", JSON.stringify(getOrders(), null, 2));
 });
 
 wipeBtn.addEventListener("click", () => {
@@ -153,19 +180,10 @@ function setupLuxSelect(name, onChange) {
             onChange(o.dataset.value);
             render();
         });
-
-        o.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                o.click();
-            }
-        });
     });
 
     document.addEventListener("click", closeAll);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeAll();
-    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
 }
 
 setupLuxSelect("status", (v) => { selectedStatus = v; });
@@ -189,12 +207,14 @@ function openModal(id) {
     activeOrderId = id;
 
     mTitle.textContent = o.id;
-    mSub.textContent = new Date(o.created_at).toLocaleString();
+    mSub.textContent = o.created_at ? new Date(o.created_at).toLocaleString() : "—";
 
     mCustomer.textContent = o.customer?.name || "—";
     mContact.textContent = `${o.customer?.phone || "—"}${o.customer?.email ? " · " + o.customer.email : ""}`;
     mAddress.textContent = o.customer?.address || "—";
-    mPay.textContent = `${o.payment_method} · ${statusLabel(o.status)}`;
+
+    const ref = o.payment_ref ? ` · Ref: ${o.payment_ref}` : "";
+    mPay.textContent = `${o.payment_method || "—"} · ${statusLabel(o.status)}${ref}`;
 
     mItems.innerHTML = (o.items || []).map(it => `
     <div class="admin-item">
@@ -206,7 +226,7 @@ function openModal(id) {
     </div>
   `).join("");
 
-    mTotal.textContent = money(o.total);
+    mTotal.textContent = money(o.total || 0);
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
@@ -229,20 +249,14 @@ document.addEventListener("keydown", (e) => {
 document.querySelectorAll("[data-status]").forEach(btn => {
     btn.addEventListener("click", () => {
         if (!activeOrderId) return;
-        const orders = getOrders();
-        const o = orders.find(x => x.id === activeOrderId);
-        if (!o) return;
-        o.status = btn.dataset.status;
-        setOrders(orders);
+        setStatus(activeOrderId, btn.dataset.status);
         openModal(activeOrderId);
-        render();
     });
 });
 
 mDelete.addEventListener("click", () => {
     if (!activeOrderId) return;
-    const orders = getOrders().filter(o => o.id !== activeOrderId);
-    setOrders(orders);
+    setOrders(getOrders().filter(o => o.id !== activeOrderId));
     closeModal();
     render();
 });
