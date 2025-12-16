@@ -1,11 +1,12 @@
-const loginForm = document.getElementById("loginForm");
+const ADMIN_PIN = "1234"; // 🔒 CAMBIA ESTE PIN
+
 const loginPage = document.getElementById("loginPage");
 const adminPage = document.getElementById("adminPage");
+const loginForm = document.getElementById("loginForm");
 const loginError = document.getElementById("loginError");
 
-const ADMIN_PIN = "667377"; // cámbialo
-
-if (localStorage.getItem("adminLoggedIn") === "true") {
+// Si ya está logueado, entra directo
+if (localStorage.getItem("ppa_admin_logged") === "true") {
     loginPage.classList.add("hidden");
     adminPage.classList.remove("hidden");
 }
@@ -16,7 +17,7 @@ loginForm.addEventListener("submit", (e) => {
     const pin = document.getElementById("pin").value.trim();
 
     if (pin === ADMIN_PIN) {
-        localStorage.setItem("adminLoggedIn", "true");
+        localStorage.setItem("ppa_admin_logged", "true");
         loginError.style.display = "none";
         loginPage.classList.add("hidden");
         adminPage.classList.remove("hidden");

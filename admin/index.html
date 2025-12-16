@@ -2,25 +2,31 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Pole Position Apparel</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · Pole Position Apparel</title>
+    <link rel="stylesheet" href="../css/styles.css" />
 </head>
 
 <body>
+
+    <!-- LOGIN -->
     <div id="loginPage" class="login-page">
-        <h2>Acceso Admin</h2>
-        <form id="loginForm">
-            <label for="pin">PIN de Administrador:</label>
-            <input type="password" id="pin" name="pin" required>
-            <button type="submit">Entrar</button>
+        <h2>Acceso Administrativo</h2>
+
+        <form id="loginForm" class="login-form">
+            <label for="pin">PIN de Administrador</label>
+            <input type="password" id="pin" required />
+            <button type="submit" class="btn-lux">Entrar</button>
         </form>
-        <p id="loginError" class="login-error">PIN incorrecto. Intenta nuevamente.</p>
+
+        <p id="loginError" class="login-error">
+            PIN incorrecto. Intenta nuevamente.
+        </p>
     </div>
 
+    <!-- ADMIN -->
     <div id="adminPage" class="admin-page hidden">
-        <h2>Bienvenido al Panel de Administración</h2>
         <script type="module" src="./admin.js"></script>
     </div>
 

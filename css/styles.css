@@ -945,48 +945,44 @@ img {
 }
 
 /* Página de login */
+
+.hidden {
+    display: none !important;
+}
+
 .login-page {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    justify-content: center;
+    background: radial-gradient(1200px 600px at 10% 10%, #141722, #07080b);
+    color: #f5f6f7;
 }
 
 .login-page h2 {
     margin-bottom: 20px;
+    font-weight: 600;
 }
 
-.login-page form {
+.login-form {
+    width: 100%;
+    max-width: 320px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-.login-page input {
-    padding: 10px;
-    width: 200px;
-    font-size: 16px;
+.login-form input {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .15);
+    background: rgba(255, 255, 255, .04);
+    color: #fff;
 }
 
-.login-page button {
-    padding: 10px;
-    background-color: #1a73e8;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.login-page button:hover {
-    background-color: #1558b3;
-}
-
-/* Página del admin */
-.admin-page {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #ffffff;
+.login-error {
     display: none;
+    margin-top: 12px;
+    color: #ff6b6b;
 }
