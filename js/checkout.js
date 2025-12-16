@@ -5,8 +5,7 @@ document.getElementById("y").textContent = new Date().getFullYear();
 const CART_KEY = "ppa_cart_v1";
 const ORDERS_KEY = "ppa_orders_v1";
 
-// ⚠️ Cambia esto por tu WhatsApp (Bolivia): 591 + número (sin +, sin espacios)
-const WHATSAPP_NUMBER = "59170000000";
+const WHATSAPP_NUMBER = "59171808300";
 
 const empty = document.getElementById("empty");
 const checkoutWrap = document.getElementById("checkoutWrap");
