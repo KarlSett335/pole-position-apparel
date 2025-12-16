@@ -1,151 +1,114 @@
-import { PRODUCTS } from "./data.js";
+import { loadProducts, loadOffers, onlyActive, activeOfferNow, applyOffer } from "/js/catalog.js";
 
 document.getElementById("y").textContent = new Date().getFullYear();
 
-const grid = document.getElementById("grid");
 const q = document.getElementById("q");
-const resultsMeta = document.getElementById("resultsMeta");
+const cat = document.getElementById("cat");
+const sort = document.getElementById("sort");
+const meta = document.getElementById("meta");
+const grid = document.getElementById("productsGrid");
+const empty = document.getElementById("empty");
 
-let selectedCategory = "all";
-let selectedSort = "featured";
+const gridTeams = document.getElementById("gridTeams");
+const gridDrivers = document.getElementById("gridDrivers");
+const gridScale = document.getElementById("gridScale");
+const gridAcc = document.getElementById("gridAcc");
 
-const CART_KEY = "ppa_cart_v1";
-
-function getCart() {
-    return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-}
-function setCart(items) {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-}
-function addToCart(productId) {
-    const cart = getCart();
-    const item = cart.find(i => i.id === productId);
-    if (item) item.qty += 1;
-    else cart.push({ id: productId, qty: 1 });
-    setCart(cart);
-    updateCartCount();
-}
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((s, i) => s + i.qty, 0);
-    const el = document.getElementById("cartCount");
-    if (el) el.textContent = String(count);
+function money(n) { return Number(n || 0).toLocaleString("es-BO"); }
+function normalize(s) {
+    return String(s || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
 }
 
-function card(p) {
+function card(p, offer) {
+    const img = p.image_url ? p.image_url : "/assets/images/placeholder.jpg";
+    const { final, discount } = applyOffer(p.price, offer);
+
+    const hasOffer = discount > 0;
+
     return `
-  <div class="col-12 col-sm-6 col-lg-4">
-    <div class="p-card h-100">
-      <a class="d-block" href="/product.html?id=${encodeURIComponent(p.id)}">
-        <img class="p-img" src="${p.image}" alt="${p.name}">
-      </a>
-      <div class="p-body">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-          <div class="h5 mb-1">${p.name}</div>
-          <span class="badge-lux">${p.category}</span>
-        </div>
-        <div class="small-muted mb-2">${p.team || "Pole Position"}</div>
-        <div class="d-flex justify-content-between align-items-center gap-2">
-          <div class="price">${p.price} BOB</div>
-          <button class="btn-lux btn-sm px-3" data-add="${p.id}" type="button">Añadir</button>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="product-card">
+        <img class="product-img" src="${img}" alt="">
+        <div class="product-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="product-title">${p.name}</div>
+            ${hasOffer ? `<span class="badge-offer">Oferta</span>` : ``}
+          </div>
+
+          <div class="small-muted">${p.category || ""}${p.team ? " · " + p.team : ""}</div>
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="d-flex align-items-baseline gap-2">
+              ${hasOffer ? `<div class="price-old">${money(p.price)} BOB</div>` : ``}
+              <div class="price">${money(final)} BOB</div>
+            </div>
+            <div class="small-muted">Stock: ${Number(p.stock || 0)}</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>`;
+  `;
 }
 
-function normalize(s) {
-    return String(s || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
+function renderCategories(products) {
+    const set = new Set(products.map(p => p.category).filter(Boolean));
+    const cats = ["all", ...Array.from(set)];
+    cat.innerHTML = cats.map(c => `<option value="${c}">${c === "all" ? "Todas" : c}</option>`).join("");
 }
 
-function applyFilters() {
+function applySort(arr, mode) {
+    const a = [...arr];
+    if (mode === "price-asc") a.sort((x, y) => Number(x.price || 0) - Number(y.price || 0));
+    else if (mode === "price-desc") a.sort((x, y) => Number(y.price || 0) - Number(x.price || 0));
+    else if (mode === "name") a.sort((x, y) => String(x.name).localeCompare(String(y.name)));
+    else a.sort((x, y) => new Date(y.created_at || 0) - new Date(x.created_at || 0));
+    return a;
+}
+
+function renderMain(products, offer) {
     const text = normalize(q.value);
-    const cat = selectedCategory;
-    const s = selectedSort;
-    const team = document.querySelector(".chip.is-active")?.dataset.team || "all";
+    const c = cat.value;
 
-    let list = [...PRODUCTS];
-
-    if (cat !== "all") list = list.filter(p => p.category === cat);
-    if (team !== "all") list = list.filter(p => (p.team || "") === team);
+    let filtered = [...products];
+    if (c !== "all") filtered = filtered.filter(p => p.category === c);
 
     if (text) {
-        list = list.filter(p => {
-            const hay = normalize(`${p.name} ${p.category} ${p.team || ""}`);
-            return hay.includes(text);
-        });
+        filtered = filtered.filter(p => normalize(`${p.name} ${p.category} ${p.team}`).includes(text));
     }
 
-    if (s === "price-asc") list.sort((a, b) => a.price - b.price);
-    if (s === "price-desc") list.sort((a, b) => b.price - a.price);
-    if (s === "name-asc") list.sort((a, b) => a.name.localeCompare(b.name));
+    filtered = applySort(filtered, sort.value);
 
-    resultsMeta.textContent = `${list.length} producto(s)`;
+    meta.textContent = `${filtered.length} producto(s)`;
 
-    grid.innerHTML = list.map(card).join("");
-
-    grid.querySelectorAll("[data-add]").forEach(btn => {
-        btn.addEventListener("click", () => addToCart(btn.dataset.add));
-    });
-}
-
-document.querySelectorAll(".chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-        document.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
-        chip.classList.add("is-active");
-        applyFilters();
-    });
-});
-
-q.addEventListener("input", applyFilters);
-
-function setupLuxSelect(name, onChange) {
-    const root = document.querySelector(`.lux-select[data-select="${name}"]`);
-    if (!root) return;
-
-    const btn = root.querySelector(".lux-select-btn");
-    const label = root.querySelector(".lux-select-label");
-    const opts = [...root.querySelectorAll(".lux-option")];
-
-    function closeAll() {
-        document.querySelectorAll(".lux-select.open").forEach(el => {
-            el.classList.remove("open");
-            const b = el.querySelector(".lux-select-btn");
-            if (b) b.setAttribute("aria-expanded", "false");
-        });
+    if (filtered.length === 0) {
+        empty.classList.remove("d-none");
+        grid.innerHTML = "";
+    } else {
+        empty.classList.add("d-none");
+        grid.innerHTML = filtered.map(p => card(p, offer)).join("");
     }
-
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isOpen = root.classList.contains("open");
-        closeAll();
-        root.classList.toggle("open", !isOpen);
-        btn.setAttribute("aria-expanded", String(!isOpen));
-    });
-
-    opts.forEach(o => {
-        o.addEventListener("click", () => {
-            opts.forEach(x => x.classList.remove("is-active"));
-            o.classList.add("is-active");
-            label.textContent = o.textContent.trim();
-            root.classList.remove("open");
-            btn.setAttribute("aria-expanded", "false");
-            onChange(o.dataset.value);
-            applyFilters();
-        });
-    });
-
-    document.addEventListener("click", closeAll);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeAll();
-    });
 }
 
-setupLuxSelect("category", (v) => { selectedCategory = v; });
-setupLuxSelect("sort", (v) => { selectedSort = v; });
+function renderSection(el, products, category, offer) {
+    if (!el) return;
+    const items = products.filter(p => p.category === category);
+    el.innerHTML = items.slice(0, 9).map(p => card(p, offer)).join("") || `<div class="small-muted mt-2">Sin productos en esta categoría.</div>`;
+}
 
-updateCartCount();
-applyFilters();
+(async () => {
+    let products = onlyActive(await loadProducts());
+    const offers = await loadOffers();
+    const offer = activeOfferNow(offers);
+
+    renderCategories(products);
+
+    renderMain(products, offer);
+    renderSection(gridTeams, products, "Equipos", offer);
+    renderSection(gridDrivers, products, "Pilotos", offer);
+    renderSection(gridScale, products, "Escala", offer);
+    renderSection(gridAcc, products, "Accesorios", offer);
+
+    q.addEventListener("input", () => renderMain(products, offer));
+    cat.addEventListener("change", () => renderMain(products, offer));
+    sort.addEventListener("change", () => renderMain(products, offer));
+})();

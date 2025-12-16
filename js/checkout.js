@@ -1,217 +1,61 @@
-import { PRODUCTS } from "./data.js";
+const DB_KEY = "ppa_admin_db_v1";
 
-document.getElementById("y").textContent = new Date().getFullYear();
-
-const CART_KEY = "ppa_cart_v1";
-const ORDERS_KEY = "ppa_orders_v1";
-
-const WHATSAPP_NUMBER = "59171808300";
-
-const empty = document.getElementById("empty");
-const checkoutWrap = document.getElementById("checkoutWrap");
-const success = document.getElementById("success");
-
-const sumItems = document.getElementById("sumItems");
-const subtotalEl = document.getElementById("subtotal");
-const totalEl = document.getElementById("total");
-
-const payBox = document.getElementById("payBox");
-const hint = document.getElementById("hint");
-
-const nameEl = document.getElementById("name");
-const phoneEl = document.getElementById("phone");
-const emailEl = document.getElementById("email");
-const addressEl = document.getElementById("address");
-const confirmBtn = document.getElementById("confirm");
-
-let selectedPay = "QR";
-
-function getCart() {
-    return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-}
-function setCart(items) {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-}
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((s, i) => s + i.qty, 0);
-    const el = document.getElementById("cartCount");
-    if (el) el.textContent = String(count);
-}
-function getOrders() {
-    return JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
-}
-function setOrders(items) {
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(items));
-}
-function money(n) {
-    return Number(n).toLocaleString("es-BO");
+export async function loadDB() {
+    try {
+        const raw = localStorage.getItem(DB_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch (_) { }
+    return null;
 }
 
-function cartItemsDetailed() {
-    const cart = getCart();
-    return cart
-        .map(ci => {
-            const p = PRODUCTS.find(x => x.id === ci.id);
-            if (!p) return null;
-            return { ...ci, product: p, line: p.price * ci.qty };
-        })
-        .filter(Boolean);
+export async function loadProducts() {
+    const db = await loadDB();
+    if (db && Array.isArray(db.products)) return db.products;
+
+    const r = await fetch("/data/products.json", { cache: "no-store" });
+    const json = await r.json();
+    return Array.isArray(json) ? json : [];
 }
 
-function renderSummary(items) {
-    if (items.length === 0) return;
-
-    sumItems.innerHTML = items.map(it => `
-    <div class="sum-row">
-      <div class="sum-left">
-        <div class="sum-name">${it.product.name}</div>
-        <div class="small-muted">${it.product.team || "Pole Position"} · ${it.product.category} · x${it.qty}</div>
-      </div>
-      <div class="price">${money(it.line)} BOB</div>
-    </div>
-  `).join("");
-
-    const subtotal = items.reduce((s, it) => s + it.line, 0);
-    subtotalEl.textContent = money(subtotal);
-    totalEl.textContent = money(subtotal);
+export async function loadOffers() {
+    const db = await loadDB();
+    if (db && Array.isArray(db.offers)) return db.offers;
+    return [];
 }
 
-function setPayUI(method) {
-    selectedPay = method;
-    document.querySelectorAll(".pay-option").forEach(b => b.classList.remove("is-active"));
-    document.querySelector(`.pay-option[data-pay="${method}"]`)?.classList.add("is-active");
-
-    if (method === "QR") {
-        payBox.innerHTML = `
-      <div class="pay-box-title">Pago por QR</div>
-      <div class="small-muted mt-1">Te enviaremos el QR por WhatsApp con tu referencia.</div>
-      <div class="small-muted mt-2">Luego podrás enviar el comprobante por el mismo chat.</div>
-    `;
-        hint.textContent = "Recomendado: QR por WhatsApp para confirmar el pago rápidamente.";
-    }
-
-    if (method === "TIENDA") {
-        payBox.innerHTML = `
-      <div class="pay-box-title">Pago en tienda</div>
-      <div class="small-muted mt-1">Reserva tu pedido y coordinamos por WhatsApp para entrega y pago.</div>
-      <div class="small-muted mt-2">Horario sugerido: 10:00–18:00</div>
-    `;
-        hint.textContent = "Te contactaremos para coordinar el punto de entrega.";
-    }
-
-    if (method === "TARJETA") {
-        payBox.innerHTML = `
-      <div class="pay-box-title">Pago con tarjeta</div>
-      <div class="small-muted mt-1">Visa · Mastercard</div>
-      <div class="small-muted mt-2">En la siguiente fase se integra pasarela de pago (ej. MercadoPago/Stripe/PayPal).</div>
-    `;
-        hint.textContent = "Para la demo, el pedido se registra y queda pendiente de pago.";
-    }
+export function onlyActive(products) {
+    return (products || []).filter(p => p && p.active !== false);
 }
 
-function validate() {
-    const name = nameEl.value.trim();
-    const phone = phoneEl.value.trim();
-    const address = addressEl.value.trim();
+export function activeOfferNow(offers) {
+    const now = Date.now();
+    const list = (offers || []).filter(o => o && o.active);
 
-    if (name.length < 3) return "Ingresa tu nombre completo.";
-    if (phone.length < 6) return "Ingresa un teléfono válido.";
-    if (address.length < 6) return "Ingresa una dirección o referencia.";
-    return "";
-}
-
-function createOrder(items) {
-    const subtotal = items.reduce((s, it) => s + it.line, 0);
-    const paymentRef = `PPA-${Date.now().toString().slice(-6)}`;
-
-    return {
-        id: `PPA-${Math.random().toString(16).slice(2, 8).toUpperCase()}`,
-        created_at: new Date().toISOString(),
-        payment_ref: paymentRef,
-        proof: "",
-        customer: {
-            name: nameEl.value.trim(),
-            phone: phoneEl.value.trim(),
-            email: emailEl.value.trim(),
-            address: addressEl.value.trim()
-        },
-        payment_method: selectedPay,
-        status: "PENDING_PAYMENT",
-        items: items.map(it => ({
-            id: it.product.id,
-            name: it.product.name,
-            qty: it.qty,
-            unit_price: it.product.price
-        })),
-        total: subtotal
-    };
-}
-
-function openWhatsApp(order) {
-    const lines = order.items
-        .map(it => `- ${it.name} x${it.qty}`)
-        .join("\n");
-
-    const text =
-        `Hola, quiero confirmar mi pedido en Pole Position Apparel.\n\n` +
-        `Pedido: ${order.id}\n` +
-        `Método: ${order.payment_method}\n` +
-        `Referencia: ${order.payment_ref}\n` +
-        `Total: ${money(order.total)} BOB\n\n` +
-        `Cliente: ${order.customer.name}\n` +
-        `Teléfono: ${order.customer.phone}\n` +
-        `Dirección: ${order.customer.address}\n\n` +
-        `Items:\n${lines}\n\n` +
-        `¿Me envían el QR / confirmamos la entrega?`;
-
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
-}
-
-const items = cartItemsDetailed();
-
-if (items.length === 0) {
-    empty.classList.remove("d-none");
-    checkoutWrap.classList.add("d-none");
-    success.classList.add("d-none");
-} else {
-    empty.classList.add("d-none");
-    checkoutWrap.classList.remove("d-none");
-    success.classList.add("d-none");
-
-    renderSummary(items);
-    updateCartCount();
-
-    document.querySelectorAll(".pay-option").forEach(b => {
-        b.addEventListener("click", () => setPayUI(b.dataset.pay));
+    const valid = list.filter(o => {
+        const s = o.starts_at ? new Date(o.starts_at).getTime() : null;
+        const e = o.ends_at ? new Date(o.ends_at).getTime() : null;
+        const okStart = s ? now >= s : true;
+        const okEnd = e ? now <= e : true;
+        return okStart && okEnd;
     });
-    setPayUI("QR");
 
-    confirmBtn.addEventListener("click", () => {
-        const msg = validate();
-        if (msg) {
-            hint.textContent = msg;
-            return;
-        }
+    // Si hay varias, usa la primera (la más nueva si tiene created_at)
+    valid.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    return valid[0] || null;
+}
 
-        const order = createOrder(items);
+export function applyOffer(price, offer) {
+    const p = Number(price || 0);
+    if (!offer) return { final: p, discount: 0 };
 
-        const orders = getOrders();
-        orders.unshift(order);
-        setOrders(orders);
+    const v = Number(offer.value || 0);
 
-        setCart([]);
-        updateCartCount();
+    if (offer.type === "AMOUNT") {
+        const final = Math.max(0, p - v);
+        return { final, discount: p - final };
+    }
 
-        checkoutWrap.classList.add("d-none");
-        success.classList.remove("d-none");
-
-        // ✅ Acciones por método de pago
-        if (order.payment_method === "QR" || order.payment_method === "TIENDA") {
-            openWhatsApp(order);
-        } else {
-            hint.textContent = "Pedido registrado. Pago con tarjeta se integra en la siguiente fase.";
-        }
-    });
+    // PERCENT
+    const final = Math.max(0, Math.round(p * (1 - v / 100)));
+    return { final, discount: p - final };
 }
