@@ -262,3 +262,11 @@ mDelete.addEventListener("click", () => {
 });
 
 render();
+
+if (!localStorage.getItem("adminLoggedIn")) {
+    window.location.href = "/admin/index.html"; // Redirigir a la página de login
+} else {
+    // Si está logueado, continua con la lógica del admin
+    document.getElementById("adminPage").style.display = "block";
+    render();
+}
