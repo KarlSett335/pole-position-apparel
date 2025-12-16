@@ -29,62 +29,36 @@ async function loadNextRace() {
   const nameEl = $("raceName");
   const metaEl = $("raceMeta");
   const cdEl = $("countdown");
-
-  if (!nameEl || !metaEl || !cdEl) {
-    console.warn("Faltan elementos en el DOM:", {
-      raceName: !!nameEl, raceMeta: !!metaEl, countdown: !!cdEl
-    });
-    return;
-  }
+  if (!nameEl || !metaEl || !cdEl) return;
 
   try {
     metaEl.textContent = "Cargando…";
 
-    const url = "https://ergast.com/api/f1/current/next.json";
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch("/api/next-race", { cache: "no-store" });
+    const payload = await res.json();
 
-    console.log("Ergast status:", res.status);
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    if (!res.ok || !payload.ok) throw new Error(payload.error || "API error");
 
-    const data = await res.json();
-    console.log("Ergast data:", data);
+    nameEl.textContent =
+      payload.raceName + (payload.country ? " · " + payload.country : "");
 
-    const race = data?.MRData?.RaceTable?.Races?.[0];
-    if (!race) throw new Error("No se encontró la próxima carrera");
-
-    const country = race?.Circuit?.Location?.country ? ` · ${race.Circuit.Location.country}` : "";
-    nameEl.textContent = `${race.raceName}${country}`;
-
-    const time = (race.time && race.time.includes("Z")) ? race.time : (race.time ? race.time + "Z" : "00:00:00Z");
-    const raceDate = new Date(`${race.date}T${time}`);
-
-    if (isNaN(raceDate.getTime())) {
-      metaEl.textContent = "Fecha no disponible";
-      cdEl.textContent = "--:--:--";
-      console.warn("Fecha inválida construida con:", race.date, time);
-      return;
-    }
-
+    const raceDate = new Date(payload.iso);
     metaEl.textContent = raceDate.toLocaleString("es-BO");
 
     function tick() {
-      const diff = raceDate.getTime() - Date.now();
-      if (diff <= 0) {
-        cdEl.textContent = "¡Es hoy!";
-        return;
-      }
+      const diff = raceDate - Date.now();
+      if (diff <= 0) { cdEl.textContent = "¡Es hoy!"; return; }
       const s = Math.floor(diff / 1000);
       const d = Math.floor(s / 86400);
       const h = Math.floor((s % 86400) / 3600);
       const m = Math.floor((s % 3600) / 60);
       const ss = s % 60;
-      cdEl.textContent = `${d}d ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+      cdEl.textContent = `${d}d ${h}:${m}:${ss}`;
       setTimeout(tick, 1000);
     }
     tick();
 
-  } catch (err) {
-    console.error("Error cargando carrera:", err);
+  } catch {
     metaEl.textContent = "Calendario no disponible";
     cdEl.textContent = "--:--:--";
   }
